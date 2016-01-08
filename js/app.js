@@ -5,6 +5,8 @@ import {makeDOMDriver, hJSX} from '@cycle/dom';
 /*eslint-enable no-unused-vars*/
 import {makeHTTPDriver} from '@cycle/http';
 
+import FileList from './components/files-list';
+
 function main({DOM, HTTP}) {
     const submitForm$ = DOM.select('#repo')
         .events('submit')
@@ -14,17 +16,16 @@ function main({DOM, HTTP}) {
         .events('input')
         .map(ev => ev.target.value);
 
-    const changeRepo$ = submitForm$.withLatestFrom(input$, (sf$, name) => name);
+    const repoName$ = submitForm$.withLatestFrom(input$, (sf$, name) => name);
 
-    const GITHUB_SEARCH_API = 'https://api.github.com/repos/';
+    const fileList = FileList({HTTP: HTTP, props$: repoName$});
 
-    const request$ =  changeRepo$.map(name => `${GITHUB_SEARCH_API}${name}/contents`);
 
-    const vtree$ = HTTP
+    const vtree$ = fileList.HTTP
         .flatMap(x => x)
         .map(res => res.body)
         .startWith([])
-        .map(files =>
+        .map(() =>
             <div>
                 <form id="repo" className="form-inline">
                     <div className="form-group">
@@ -34,16 +35,12 @@ function main({DOM, HTTP}) {
                     <input type="submit" className="btn btn-default" value="Get repo filesystem!" />
                 </form>
                 <hr />
-                <div className="row">
-                    <div className="col-md-12">
-                        {JSON.stringify(files)}
-                    </div>
-                </div>
+                {fileList.DOM}
             </div>
         );
     return {
         DOM: vtree$,
-        HTTP: request$
+        HTTP: fileList.HTTP
     };
 }
 
