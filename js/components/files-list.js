@@ -10,8 +10,13 @@ export default function FilesList ({HTTP, props$}) {
     const vtree$ = HTTP
         .flatMap(x => x)
         .map(res => res.body)
+        .map(files => files.sort((a, b) => {
+            if (a.type > b.type) return 1;
+            if (a.type < b.type) return -1;
+            return 0;
+        }))
         .startWith([])
-        .map(files =>
+        .map(files => 
             <div className="row">
                 <div className="col-md-12">
                     <table className="table">
@@ -23,12 +28,14 @@ export default function FilesList ({HTTP, props$}) {
                             </tr>
                         </thead>
                         <tbody>
-                            {files.map(file =>
-                                <tr>
-                                    <td>{file.name}</td>
-                                    <td className="text-right"></td>
-                                </tr>
-                            )}
+                            {files
+                                .map(file =>
+                                    <tr>
+                                        <td>{file.name}</td>
+                                        <td className="text-right"></td>
+                                    </tr>
+                                )
+                            }
                         </tbody>
                     </table>
                 </div>

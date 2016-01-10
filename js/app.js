@@ -5,7 +5,7 @@ import {makeDOMDriver, hJSX} from '@cycle/dom';
 /*eslint-enable no-unused-vars*/
 import {makeHTTPDriver} from '@cycle/http';
 
-import FileList from './components/files-list';
+import FilesList from './components/files-list';
 
 function main({DOM, HTTP}) {
     const submitForm$ = DOM.select('#repo')
@@ -18,14 +18,10 @@ function main({DOM, HTTP}) {
 
     const repoName$ = submitForm$.withLatestFrom(input$, (sf$, name) => name);
 
-    const fileList = FileList({HTTP: HTTP, props$: repoName$});
+    const fileList = FilesList({HTTP: HTTP, props$: repoName$});
 
-
-    const vtree$ = fileList.HTTP
-        .flatMap(x => x)
-        .map(res => res.body)
-        .startWith([])
-        .map(() =>
+    const vtree$ = fileList.DOM
+        .map(FilesList =>
             <div>
                 <form id="repo" className="form-inline">
                     <div className="form-group">
@@ -35,7 +31,7 @@ function main({DOM, HTTP}) {
                     <input type="submit" className="btn btn-default" value="Get repo filesystem!" />
                 </form>
                 <hr />
-                {fileList.DOM}
+                {FilesList}
             </div>
         );
     return {
