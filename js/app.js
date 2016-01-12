@@ -18,7 +18,7 @@ function main({DOM, HTTP}) {
 
     const repoName$ = submitForm$.withLatestFrom(input$, (sf$, name) => name);
 
-    const fileList = FilesList({HTTP: HTTP, props$: repoName$});
+    const fileList = FilesList({DOM: DOM, HTTP: HTTP, props$: repoName$});
 
     const vtree$ = fileList.DOM
         .map(FilesList =>
