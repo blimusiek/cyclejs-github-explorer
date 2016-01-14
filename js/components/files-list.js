@@ -13,11 +13,17 @@ export default function FilesList ({DOM, HTTP, props$}) {
         .map(ev => ev.target.textContent);
 
     const path$ = dirClick$
-        .scan((p, c) => { return `${p}/${c}` }, '')
+        .merge(props$.map(() => null))
+        // beacause we want reset path when someone changed repo
+        .scan((p, c) => { return null === c ? '' : `${p}/${c}` }, '')
         .startWith('');
 
-    const request$ = props$.map(name => `${GITHUB_SEARCH_API}${name}/contents`)
-        .combineLatest(path$, (url, path) => `${url}${path}`);
+    // const request$ = props$
+    //     .map(name => `${GITHUB_SEARCH_API}${name}/contents`)
+    //     .combineLatest(path$, (url, path) => `${url}${path}`);
+
+    const request$ = path$
+        .withLatestFrom(props$.map(name => `${GITHUB_SEARCH_API}${name}/contents`), (path, url) => `${url}${path}`);
 
     const vtree$ = HTTP
         .flatMap(x => x)
