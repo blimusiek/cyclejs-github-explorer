@@ -9,11 +9,9 @@ export default function FilesList ({DOM, HTTP, props$}) {
     const PATH_SEPARATOR = '/';
     const BACK_SIGNAL = '..';
 
-    /*eslint-disable no-unused-vars*/
     const backClick$ = DOM.select('.go-back')
         .events('click')
         .do(ev => ev.preventDefault())
-    /*eslint-enable no-unused-vars*/
 
     const dirClick$ = DOM.select('.enter-dir')
         .events('click')
