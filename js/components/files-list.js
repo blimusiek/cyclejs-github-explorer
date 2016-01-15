@@ -5,7 +5,15 @@ import {hJSX} from '@cycle/dom';
 
 export default function FilesList ({DOM, HTTP, props$}) {
     const GITHUB_SEARCH_API = 'https://api.github.com/repos/';
+    const ROOT_REPO_PATH = '/';
+    const PATH_SEPARATOR = '/';
+    const BACK_SIGNAL = '..';
 
+    /*eslint-disable no-unused-vars*/
+    const backClick$ = DOM.select('.go-back')
+        .events('click')
+        .do(ev => ev.preventDefault())
+    /*eslint-enable no-unused-vars*/
 
     const dirClick$ = DOM.select('.enter-dir')
         .events('click')
@@ -14,13 +22,16 @@ export default function FilesList ({DOM, HTTP, props$}) {
 
     const path$ = dirClick$
         .merge(props$.map(() => null))
-        // beacause we want reset path when someone changed repo
-        .scan((p, c) => { return null === c ? '' : `${p}/${c}` }, '')
-        .startWith('');
-
-    // const request$ = props$
-    //     .map(name => `${GITHUB_SEARCH_API}${name}/contents`)
-    //     .combineLatest(path$, (url, path) => `${url}${path}`);
+        .merge(backClick$.map(() => BACK_SIGNAL))
+        .scan((p, c) => {
+            // we need to reset path when someone changed repo
+            if (null === c) return ROOT_REPO_PATH;
+            if (BACK_SIGNAL === c) return p.split(PATH_SEPARATOR).slice(0, -1).join(PATH_SEPARATOR);
+            return `${p}${PATH_SEPARATOR}${c}`;
+        }, '')
+        .map(path => path.replace('//', ROOT_REPO_PATH))
+        .do(x => console.log(x))
+        .startWith(ROOT_REPO_PATH);
 
     const request$ = path$
         .withLatestFrom(props$.map(name => `${GITHUB_SEARCH_API}${name}/contents`), (path, url) => `${url}${path}`);
@@ -34,7 +45,7 @@ export default function FilesList ({DOM, HTTP, props$}) {
             return 0;
         }))
         .withLatestFrom(path$, (files, path) => { return {files: files, path: path} })
-        .startWith({path: '/', files: []})
+        .startWith({path: ROOT_REPO_PATH, files: []})
         .map(dir =>
             <div className="row">
                 <div className="col-md-12">
@@ -43,7 +54,9 @@ export default function FilesList ({DOM, HTTP, props$}) {
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th className="text-right"></th>
+                                <th className="text-right">
+                                    {ROOT_REPO_PATH !== dir.path ? <button className="btn btn-default btn-xs go-back">Go Back</button> : ''}
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
