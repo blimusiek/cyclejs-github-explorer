@@ -1,10 +1,11 @@
 /** @jsx hJSX */
 /*eslint-disable no-unused-vars*/
+import {Observable} from 'rx';
 import {hJSX} from '@cycle/dom';
 /*eslint-enable no-unused-vars*/
 import Navigation from './navigation';
 
-export default function FilesList ({DOM, HTTP, props$}) {
+export default function FilesList ({DOM, HTTP, props}) {
     const GITHUB_SEARCH_API = 'https://api.github.com/repos/';
 
     const dirClick$ = DOM.select('.enter-dir')
@@ -14,14 +15,15 @@ export default function FilesList ({DOM, HTTP, props$}) {
 
     const navigation = Navigation({
         DOM: DOM,
-        props: { dirClick$: dirClick$.merge(props$.map(() => null)) }
+        props: { dirClick$: dirClick$.merge(props.name$.map(() => null)) }
     });
 
     const request$ = navigation.path$
-        .withLatestFrom(props$.map(name => `${GITHUB_SEARCH_API}${name}/contents`), (path, url) => `${url}${path}`);
+        .withLatestFrom(props.name$.map(name => `${GITHUB_SEARCH_API}${name}/contents`), (path, url) => `${url}${path}`);
 
-    const vtree$ = HTTP
-        .flatMap(x => x)
+    const response$ = HTTP.flatMap(rawResponse$ => rawResponse$.catch(() => Observable.empty()));
+
+    const vtree$ = response$
         .map(res => res.body)
         .map(files => files.sort((a, b) => {
             if (a.type > b.type) return 1;
