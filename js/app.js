@@ -1,39 +1,28 @@
 /** @jsx hJSX */
+import {Observable} from 'rx';
 import Cycle from '@cycle/core';
 /*eslint-disable no-unused-vars*/
 import {makeDOMDriver, hJSX} from '@cycle/dom';
 /*eslint-enable no-unused-vars*/
 import {makeHTTPDriver} from '@cycle/http';
 
+import SearchForm from './components/search-form';
 import FilesList from './components/files-list';
 
 function main({DOM, HTTP}) {
-    const submitForm$ = DOM.select('#repo')
-        .events('submit')
-        .do(ev => ev.preventDefault());
+    const searchForm = SearchForm({DOM});
+    const fileList = FilesList({DOM: DOM, HTTP: HTTP, props: { name$: searchForm.value$ }});
 
-    const input$ = DOM.select('.repo-name')
-        .events('input')
-        .map(ev => ev.target.value);
-
-    const repoName$ = submitForm$.withLatestFrom(input$, (sf$, name) => name);
-
-    const fileList = FilesList({DOM: DOM, HTTP: HTTP, props: { name$: repoName$ }});
-
-    const vtree$ = fileList.DOM
-        .map(FilesList =>
+    const vtree$ = Observable.combineLatest(
+        fileList.DOM, searchForm.DOM,
+        ((FilesList, SearchForm) =>
             <div>
-                <form id="repo" className="form-inline">
-                    <div className="form-group">
-                        <label for="repo-name">Full Repo Name</label>
-                        <input type="text" name="repo-name" className="form-control repo-name" />
-                    </div>
-                    <input type="submit" className="btn btn-default" value="Get repo filesystem!" />
-                </form>
+                {SearchForm}
                 <hr />
                 {FilesList}
             </div>
-        );
+        )
+    );
     return {
         DOM: vtree$,
         HTTP: fileList.HTTP

@@ -25,7 +25,7 @@ export default function FilesList ({DOM, props}) {
         .startWith(ROOT_REPO_PATH);
 
     const vtree$ = path$.map(path =>
-        <span>
+        <div>
             <caption>{path}</caption>
             <thead>
                 <tr>
@@ -35,7 +35,7 @@ export default function FilesList ({DOM, props}) {
                     </th>
                 </tr>
             </thead>
-        </span>
+        </div>
     )
 
     return {
