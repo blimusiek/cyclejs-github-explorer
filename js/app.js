@@ -15,13 +15,12 @@ function main({DOM, HTTP}) {
 
     const vtree$ = Observable.combineLatest(
         fileList.DOM, searchForm.DOM,
-        ((FilesList, SearchForm) =>
+        (FilesList, SearchForm) =>
             <div>
                 {SearchForm}
                 <hr />
                 {FilesList}
             </div>
-        )
     );
     return {
         DOM: vtree$,
