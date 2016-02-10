@@ -3,6 +3,8 @@ const eslint = require('gulp-eslint');
 const webserver = require('gulp-webserver');
 const webpack = require('webpack');
 
+const dest = __dirname + '/dist';
+
 gulp.task('default', ['webpack', 'lint'], () => {});
 
 gulp.task('lint', function () {
@@ -17,7 +19,7 @@ gulp.task('webpack', function(callback) {
         context: __dirname + '/js',
         entry: './app.js',
         output: {
-            path: __dirname + '/dist',
+            path: dest,
             filename: 'bundle.js'
         },
         module: {
@@ -39,7 +41,12 @@ gulp.task('webpack', function(callback) {
 gulp.task('webserver', ['webpack'], function() {
     gulp.src('./')
         .pipe(webserver({
-            livereload: true,
+            livereload: {
+                enable: true,
+                filter: function (name) {
+                    return name.match(new RegExp(dest));
+                }
+            },
             open: 'index.html'
         }));
     gulp.watch(['js/**/*.js', 'index.html'], ['lint', 'webpack']);
